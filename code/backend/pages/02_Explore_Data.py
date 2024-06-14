@@ -38,7 +38,8 @@ st.markdown(hide_table_row_index, unsafe_allow_html=True)
 try:
     search_handler = Search.get_search_handler(env_helper)
 
-    results = search_handler.search_with_facets("*", ["title"])
+    results = search_handler.search_with_facets("*", ["title, count:0"])
+
     unique_files = search_handler.get_unique_files(results, "title")
     filename = st.selectbox("Select your file:", unique_files)
     st.write("Showing chunks for:", filename)

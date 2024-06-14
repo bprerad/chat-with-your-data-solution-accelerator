@@ -1,6 +1,7 @@
 import logging
 from typing import List
 import json
+import os
 
 from .orchestrator_base import OrchestratorBase
 from ..helpers.llm_helper import LLMHelper
@@ -61,11 +62,14 @@ class OpenAIFunctionsOrchestrator(OrchestratorBase):
         # Call function to determine route
         llm_helper = LLMHelper()
 
-        system_message = """You help employees to navigate only private information sources.
-        You must prioritize the function call over your general knowledge for any question by calling the search_documents function.
-        Call the text_processing function when the user request an operation on the current context, such as translate, summarize, or paraphrase. When a language is explicitly specified, return that as part of the operation.
-        When directly replying to the user, always reply in the language the user is speaking.
-        """
+        system_message = os.getenv("OPENAI_FUNCTIONS_SYSTEM_PROMPT")
+        if not system_message:
+            system_message = """You help employees to navigate only private information sources.
+            You must prioritize the function call over your general knowledge for any question by calling the search_documents function.
+            Call the text_processing function when the user request an operation on the current context, such as translate, summarize, or paraphrase. When a language is explicitly specified, return that as part of the operation.
+            When directly replying to the user, always reply in the language the user is speaking.
+            """
+
         # Create conversation history
         messages = [{"role": "system", "content": system_message}]
         for message in chat_history:
@@ -79,6 +83,10 @@ class OpenAIFunctionsOrchestrator(OrchestratorBase):
             prompt_tokens=result.usage.prompt_tokens,
             completion_tokens=result.usage.completion_tokens,
         )
+
+        logger.info("System prompt: " + system_message)
+        logger.info(f"Messages: {messages}")
+        logger.info(f"Result: {result}")
 
         # TODO: call content safety if needed
 
